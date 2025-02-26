@@ -22,13 +22,12 @@
 #include "sfm/feature_set.h"
 #include "visualizer.h"
 
-
 std::string output_path;
 
 core::ByteImage::Ptr
-visualize_matching (features::Matching::Result const& matching,
-    core::ByteImage::Ptr image1, core::ByteImage::Ptr image2,
-    std::vector<math::Vec2f> const& pos1, std::vector<math::Vec2f> const& pos2)
+visualize_matching(features::Matching::Result const &matching,
+                   core::ByteImage::Ptr image1, core::ByteImage::Ptr image2,
+                   std::vector<math::Vec2f> const &pos1, std::vector<math::Vec2f> const &pos2)
 {
     /* Visualize keypoints. */
     sfm::Correspondences2D2D vis_matches;
@@ -45,22 +44,20 @@ visualize_matching (features::Matching::Result const& matching,
     }
 
     std::cout << "Drawing " << vis_matches.size() << " matches..." << std::endl;
-    core::ByteImage::Ptr match_image = sfm::Visualizer::draw_matches
-        (image1, image2, vis_matches);
+    core::ByteImage::Ptr match_image = sfm::Visualizer::draw_matches(image1, image2, vis_matches);
     return match_image;
 }
 
 #define DISCRETIZE_DESCRIPTORS 0
 template <typename T>
-void
-convert_sift_descriptors(features::Sift::Descriptors const& sift_descr,
-    util::AlignedMemory<math::Vector<T, 128> >* aligned_descr)
+void convert_sift_descriptors(features::Sift::Descriptors const &sift_descr,
+                              util::AlignedMemory<math::Vector<T, 128>> *aligned_descr)
 {
     aligned_descr->resize(sift_descr.size());
-    T* data_ptr = aligned_descr->data()->begin();
+    T *data_ptr = aligned_descr->data()->begin();
     for (std::size_t i = 0; i < sift_descr.size(); ++i, data_ptr += 128)
     {
-        sfm::Sift::Descriptor const& d = sift_descr[i];
+        sfm::Sift::Descriptor const &d = sift_descr[i];
 #if DISCRETIZE_DESCRIPTORS
         for (int j = 0; j < 128; ++j)
         {
@@ -76,15 +73,14 @@ convert_sift_descriptors(features::Sift::Descriptors const& sift_descr,
 }
 
 template <typename T>
-void
-convert_surf_descriptors(sfm::Surf::Descriptors const& surf_descr,
-    util::AlignedMemory<math::Vector<T, 64> >* aligned_descr)
+void convert_surf_descriptors(sfm::Surf::Descriptors const &surf_descr,
+                              util::AlignedMemory<math::Vector<T, 64>> *aligned_descr)
 {
     aligned_descr->resize(surf_descr.size());
-    T* data_ptr = aligned_descr->data()->begin();
+    T *data_ptr = aligned_descr->data()->begin();
     for (std::size_t i = 0; i < surf_descr.size(); ++i, data_ptr += 64)
     {
-        sfm::Surf::Descriptor const& d = surf_descr[i];
+        sfm::Surf::Descriptor const &d = surf_descr[i];
 #if DISCRETIZE_DESCRIPTORS
         for (int j = 0; j < 64; ++j)
         {
@@ -99,16 +95,15 @@ convert_surf_descriptors(sfm::Surf::Descriptors const& surf_descr,
     }
 }
 
-void
-feature_set_matching (core::ByteImage::Ptr image1, core::ByteImage::Ptr image2)
+void feature_set_matching(core::ByteImage::Ptr image1, core::ByteImage::Ptr image2)
 {
     /*FeatureSet 计算并存储一个视角的特征点，包含SIFT和SURF特征点 */
     sfm::FeatureSet::Options feature_set_opts;
-    //feature_types设置为FEATURE_ALL表示检测SIFT和SURF两种特征点进行匹配
+    // feature_types 设置为 FEATURE_ALL 表示检测 SIFT 和 SURF 两种特征点进行匹配
     feature_set_opts.feature_types = sfm::FeatureSet::FEATURE_ALL;
     feature_set_opts.sift_opts.verbose_output = true;
-    //feature_set_opts.surf_opts.verbose_output = true;
-    //feature_set_opts.surf_opts.contrast_threshold = 500.0f;
+    // feature_set_opts.surf_opts.verbose_output = true;
+    // feature_set_opts.surf_opts.contrast_threshold = 500.0f;
 
     // 计算第一幅图像的SIT和SURF特征点
     sfm::FeatureSet feat1(feature_set_opts);
@@ -136,17 +131,16 @@ feature_set_matching (core::ByteImage::Ptr image1, core::ByteImage::Ptr image2)
     // 进行双向匹配
     sfm::Matching::Result sift_matching;
     sfm::Matching::twoway_match(sift_matching_opts,
-        sift_descr1.data()->begin(), sift_descr1.size(),
-        sift_descr2.data()->begin(), sift_descr2.size(),
-        &sift_matching);
+                                sift_descr1.data()->begin(), sift_descr1.size(),
+                                sift_descr2.data()->begin(), sift_descr2.size(),
+                                &sift_matching);
 
     // 去除不一致的匹配对，匹配对feature1和feature2是一致的需要满足，feature1的最近邻居
     // 是feature2，feature2的最近邻是feature1
     sfm::Matching::remove_inconsistent_matches(&sift_matching);
     std::cout << "Consistent Sift Matches: "
-        << sfm::Matching::count_consistent_matches(sift_matching)
-        << std::endl;
-
+              << sfm::Matching::count_consistent_matches(sift_matching)
+              << std::endl;
 
     /*  对surf特征描述子进行匹配  */
     // surf特征匹配参数
@@ -169,22 +163,22 @@ feature_set_matching (core::ByteImage::Ptr image1, core::ByteImage::Ptr image2)
     // 进行surf描述子的双向匹配
     sfm::Matching::Result surf_matching;
     sfm::Matching::twoway_match(surf_matching_opts,
-        surf_descr1.data()->begin(), surf_descr1.size(),
-        surf_descr2.data()->begin(), surf_descr2.size(),
-        &surf_matching);
+                                surf_descr1.data()->begin(), surf_descr1.size(),
+                                surf_descr2.data()->begin(), surf_descr2.size(),
+                                &surf_matching);
     // 去除不一致的匹配对，匹配对feature 1 和 feature 2 互为最近邻
     sfm::Matching::remove_inconsistent_matches(&surf_matching);
     std::cout << "Consistent Surf Matches: "
-        << sfm::Matching::count_consistent_matches(surf_matching)
-        << std::endl;
+              << sfm::Matching::count_consistent_matches(surf_matching)
+              << std::endl;
 
     // 对sift匹配的结果和surf匹配的结果进行融合
     sfm::Matching::Result matching;
     sfm::Matching::combine_results(sift_matching, surf_matching, &matching);
 
     std::cout << "Consistent Matches: "
-        << sfm::Matching::count_consistent_matches(matching)
-        << std::endl;
+              << sfm::Matching::count_consistent_matches(matching)
+              << std::endl;
 
     /* 特征匹配可视化 */
     /* Draw features. */
@@ -194,7 +188,7 @@ feature_set_matching (core::ByteImage::Ptr image1, core::ByteImage::Ptr image2)
         if (matching.matches_1_2[i] == -1)
             continue;
 
-        sfm::Sift::Descriptor const& descr = feat1.sift_descriptors[i];
+        sfm::Sift::Descriptor const &descr = feat1.sift_descriptors[i];
         sfm::Visualizer::Keypoint kp;
         kp.orientation = descr.orientation;
         kp.radius = descr.scale * 3.0f;
@@ -209,7 +203,7 @@ feature_set_matching (core::ByteImage::Ptr image1, core::ByteImage::Ptr image2)
         if (matching.matches_2_1[i] == -1)
             continue;
 
-        sfm::Sift::Descriptor const& descr = feat2.sift_descriptors[i];
+        sfm::Sift::Descriptor const &descr = feat2.sift_descriptors[i];
         sfm::Visualizer::Keypoint kp;
         kp.orientation = descr.orientation;
         kp.radius = descr.scale * 3.0f;
@@ -219,9 +213,9 @@ feature_set_matching (core::ByteImage::Ptr image1, core::ByteImage::Ptr image2)
     }
 
     image1 = sfm::Visualizer::draw_keypoints(image1,
-        features1, sfm::Visualizer::RADIUS_BOX_ORIENTATION);
+                                             features1, sfm::Visualizer::RADIUS_BOX_ORIENTATION);
     image2 = sfm::Visualizer::draw_keypoints(image2,
-        features2, sfm::Visualizer::RADIUS_BOX_ORIENTATION);
+                                             features2, sfm::Visualizer::RADIUS_BOX_ORIENTATION);
 
     core::ByteImage::Ptr match_image = visualize_matching(
         matching, image1, image2, feat1.positions, feat2.positions);
@@ -230,8 +224,7 @@ feature_set_matching (core::ByteImage::Ptr image1, core::ByteImage::Ptr image2)
     core::image::save_file(match_image, output_filename);
 }
 
-int
-main (int argc, char** argv)
+int main(int argc, char **argv)
 {
     if (argc < 4)
     {
@@ -239,7 +232,7 @@ main (int argc, char** argv)
         return 1;
     }
 
- // 用于加速
+// 用于加速
 #ifdef __SSE2__
     std::cout << "SSE2 is enabled!" << std::endl;
 #endif
@@ -256,17 +249,17 @@ main (int argc, char** argv)
         image1 = core::image::load_file(std::string(argv[1]));
         // 图像尺寸减半
         image1 = core::image::rescale_half_size<uint8_t>(image1);
-        //image1 = core::image::rescale_half_size<uint8_t>(image1);
-        //image1 = core::image::rotate<uint8_t>(image1, core::image::ROTATE_CCW);
+        // image1 = core::image::rescale_half_size<uint8_t>(image1);
+        // image1 = core::image::rotate<uint8_t>(image1, core::image::ROTATE_CCW);
 
         std::cout << "Loading " << argv[2] << "..." << std::endl;
         image2 = core::image::load_file(argv[2]);
         // 图像尺寸减半
         image2 = core::image::rescale_half_size<uint8_t>(image2);
-        //image2 = core::image::rescale_half_size<uint8_t>(image2);
-        //image2 = core::image::rotate<uint8_t>(image2, core::image::ROTATE_CCW);
+        // image2 = core::image::rescale_half_size<uint8_t>(image2);
+        // image2 = core::image::rotate<uint8_t>(image2, core::image::ROTATE_CCW);
     }
-    catch (std::exception& e)
+    catch (std::exception &e)
     {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;

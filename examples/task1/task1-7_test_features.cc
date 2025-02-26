@@ -19,14 +19,12 @@
 #include "features/sift.h"
 #include "visualizer.h"
 
-bool
-sift_compare (features::Sift::Descriptor const& d1, features::Sift::Descriptor const& d2)
+bool sift_compare(features::Sift::Descriptor const &d1, features::Sift::Descriptor const &d2)
 {
     return d1.scale > d2.scale;
 }
 
-int
-main (int argc, char** argv)
+int main(int argc, char **argv)
 {
     if (argc < 2)
     {
@@ -41,15 +39,14 @@ main (int argc, char** argv)
     {
         std::cout << "Loading " << image_filename << "..." << std::endl;
         image = core::image::load_file(image_filename);
-        //image = core::image::rescale_half_size<uint8_t>(image);
-        //image = core::image::rescale_half_size<uint8_t>(image);
+        // image = core::image::rescale_half_size<uint8_t>(image);
+        // image = core::image::rescale_half_size<uint8_t>(image);
     }
-    catch (std::exception& e)
+    catch (std::exception &e)
     {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
     }
-
 
     /* SIFT 特征检测. */
     features::Sift::Descriptors sift_descr;
@@ -85,11 +82,10 @@ main (int argc, char** argv)
     }
 
     core::ByteImage::Ptr sift_image = features::Visualizer::draw_keypoints(image,
-        sift_drawing, features::Visualizer::RADIUS_BOX_ORIENTATION);
+                                                                           sift_drawing, features::Visualizer::RADIUS_BOX_ORIENTATION);
 
     /* 保存图像文件名 */
-    std::string sift_out_fname = "./tmp/" + util::fs::replace_extension
-        (util::fs::basename(image_filename), "sift.png");
+    std::string sift_out_fname = "./tmp/" + util::fs::replace_extension(util::fs::basename(image_filename), "sift.png");
     std::cout << "保存图像: " << sift_out_fname << std::endl;
     core::image::save_file(sift_image, sift_out_fname);
 

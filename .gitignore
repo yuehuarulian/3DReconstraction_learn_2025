@@ -1,1 +1,4 @@
 build/
+3rdParty/
+examples/data/
+.vscode/

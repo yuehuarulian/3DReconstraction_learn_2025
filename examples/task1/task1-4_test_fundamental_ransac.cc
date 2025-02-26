@@ -21,12 +21,11 @@
 
 typedef math::Matrix<double, 3, 3> FundamentalMatrix;
 
-
 /**
  * \description 用于RANSAC采样成功所需要的采样次数
  * @param p -- 内点的概率
- * @param K --拟合模型需要的样本个数，对应基础矩阵num_samples=8
- * @param z  -- 预期的采样成功的概率
+ * @param K -- 拟合模型需要的样本个数，对应基础矩阵num_samples=8
+ * @param z -- 预期的采样成功的概率
  *                          log(1-z)
  *       需要的采样次数 M = -----------
  *                          log(1-p^K)
@@ -34,16 +33,12 @@ typedef math::Matrix<double, 3, 3> FundamentalMatrix;
  * 需要采样1176次从而保证RANSAC的成功率不低于0.99.
  * @return
  */
-int  calc_ransac_iterations (double p,
-                           int K,
-                           double z = 0.99){
-
+int calc_ransac_iterations(double p, int K, double z = 0.99)
+{
     /** TODO HERE
      * Coding here**/
-    return 0;
-
-
-
+    int M = log(1 - z) / log(1 - pow(p, K));
+    return M;
 }
 
 /**
@@ -54,12 +49,13 @@ int  calc_ransac_iterations (double p,
  * @param m-- 匹配对
  * @return
  */
-double  calc_sampson_distance (FundamentalMatrix const& F, sfm::Correspondence2D2D const& m) {
+double calc_sampson_distance(FundamentalMatrix const &F, sfm::Correspondence2D2D const &m)
+{
 
     double p2_F_p1 = 0.0;
     p2_F_p1 += m.p2[0] * (m.p1[0] * F[0] + m.p1[1] * F[1] + F[2]);
     p2_F_p1 += m.p2[1] * (m.p1[0] * F[3] + m.p1[1] * F[4] + F[5]);
-    p2_F_p1 +=     1.0 * (m.p1[0] * F[6] + m.p1[1] * F[7] + F[8]);
+    p2_F_p1 += 1.0 * (m.p1[0] * F[6] + m.p1[1] * F[7] + F[8]);
     p2_F_p1 *= p2_F_p1;
 
     double sum = 0.0;
@@ -70,28 +66,27 @@ double  calc_sampson_distance (FundamentalMatrix const& F, sfm::Correspondence2D
 
     return p2_F_p1 / sum;
 }
+
 /**
  * \description 8点发估计相机基础矩阵
  * @param pset1 -- 第一个视角的特征点
  * @param pset2 -- 第二个视角的特征点
  * @return 估计的基础矩阵
  */
-void calc_fundamental_8_point (math::Matrix<double, 3, 8> const& pset1
-        , math::Matrix<double, 3, 8> const& pset2
-        ,FundamentalMatrix &F
-){
+void calc_fundamental_8_point(math::Matrix<double, 3, 8> const &pset1, math::Matrix<double, 3, 8> const &pset2, FundamentalMatrix &F)
+{
     /* direct linear transform */
     math::Matrix<double, 8, 9> A;
-    for(int i=0; i<8; i++)
+    for (int i = 0; i < 8; i++)
     {
-        math::Vec3d p1  = pset1.col(i);
+        math::Vec3d p1 = pset1.col(i);
         math::Vec3d p2 = pset2.col(i);
 
-        A(i, 0) = p1[0]*p2[0];
-        A(i, 1) = p1[1]*p2[0];
+        A(i, 0) = p1[0] * p2[0];
+        A(i, 1) = p1[1] * p2[0];
         A(i, 2) = p2[0];
-        A(i, 3) = p1[0]*p2[1];
-        A(i, 4) = p1[1]*p2[1];
+        A(i, 3) = p1[0] * p2[1];
+        A(i, 4) = p1[1] * p2[1];
         A(i, 5) = p2[1];
         A(i, 6) = p1[0];
         A(i, 7) = p1[1];
@@ -102,15 +97,21 @@ void calc_fundamental_8_point (math::Matrix<double, 3, 8> const& pset1
     math::matrix_svd<double, 8, 9>(A, nullptr, nullptr, &vv);
     math::Vector<double, 9> f = vv.col(8);
 
-    F(0,0) = f[0]; F(0,1) = f[1]; F(0,2) = f[2];
-    F(1,0) = f[3]; F(1,1) = f[4]; F(1,2) = f[5];
-    F(2,0) = f[6]; F(2,1) = f[7]; F(2,2) = f[8];
+    F(0, 0) = f[0];
+    F(0, 1) = f[1];
+    F(0, 2) = f[2];
+    F(1, 0) = f[3];
+    F(1, 1) = f[4];
+    F(1, 2) = f[5];
+    F(2, 0) = f[6];
+    F(2, 1) = f[7];
+    F(2, 2) = f[8];
 
     /* singularity constraint */
     math::Matrix<double, 3, 3> U, S, V;
     math::matrix_svd(F, &U, &S, &V);
-    S(2,2)=0;
-    F = U*S*V.transpose();
+    S(2, 2) = 0;
+    F = U * S * V.transpose();
 }
 
 /**
@@ -118,7 +119,8 @@ void calc_fundamental_8_point (math::Matrix<double, 3, 8> const& pset1
  * @param matches--输入的匹配对 大于8对
  * @param F --基础矩阵
  */
-void calc_fundamental_least_squares(sfm::Correspondences2D2D const & matches, FundamentalMatrix&F){
+void calc_fundamental_least_squares(sfm::Correspondences2D2D const &matches, FundamentalMatrix &F)
+{
 
     if (matches.size() < 8)
         throw std::invalid_argument("At least 8 points required");
@@ -126,16 +128,16 @@ void calc_fundamental_least_squares(sfm::Correspondences2D2D const & matches, Fu
     std::vector<double> A(matches.size() * 9);
     for (std::size_t i = 0; i < matches.size(); ++i)
     {
-        sfm::Correspondence2D2D const& p = matches[i];
+        sfm::Correspondence2D2D const &p = matches[i];
         A[i * 9 + 0] = p.p2[0] * p.p1[0];
         A[i * 9 + 1] = p.p2[0] * p.p1[1];
         A[i * 9 + 2] = p.p2[0] * 1.0;
         A[i * 9 + 3] = p.p2[1] * p.p1[0];
         A[i * 9 + 4] = p.p2[1] * p.p1[1];
         A[i * 9 + 5] = p.p2[1] * 1.0;
-        A[i * 9 + 6] = 1.0     * p.p1[0];
-        A[i * 9 + 7] = 1.0     * p.p1[1];
-        A[i * 9 + 8] = 1.0     * 1.0;
+        A[i * 9 + 6] = 1.0 * p.p1[0];
+        A[i * 9 + 7] = 1.0 * p.p1[1];
+        A[i * 9 + 8] = 1.0 * 1.0;
     }
 
     /* Compute fundamental matrix using SVD. */
@@ -149,18 +151,19 @@ void calc_fundamental_least_squares(sfm::Correspondences2D2D const & matches, Fu
     /* singularity constraint */
     math::Matrix<double, 3, 3> U, S, V;
     math::matrix_svd(F, &U, &S, &V);
-    S(2,2)=0;
-    F = U*S*V.transpose();
+    S(2, 2) = 0;
+    F = U * S * V.transpose();
 }
+
 /**
  * \description 给定匹配对和基础矩阵，计算内点的个数
  * @param matches
  * @param F
  * @return
  */
-std::vector<int> find_inliers(sfm::Correspondences2D2D const & matches
-    ,FundamentalMatrix const & F, const double & thresh){
-    const double squared_thresh = thresh* thresh;
+std::vector<int> find_inliers(sfm::Correspondences2D2D const &matches, FundamentalMatrix const &F, const double &thresh)
+{
+    const double squared_thresh = thresh * thresh;
 
     std::vector<int> inliers;
 
@@ -168,43 +171,49 @@ std::vector<int> find_inliers(sfm::Correspondences2D2D const & matches
      * TODO HERE
      *
      * Coding here **/
+    for (int i = 0; i < matches.size(); i++)
+    {
+        double dist = calc_sampson_distance(F, matches[i]);
+        if (dist < squared_thresh)
+        {
+            inliers.push_back(i);
+        }
+    }
 
     return inliers;
 }
 
-
-
-int main(int argc, char *argv[]){
-
+int main(int argc, char *argv[])
+{
     /** 加载归一化后的匹配对 */
     sfm::Correspondences2D2D corr_all;
-    std::ifstream in("../examples/task1/correspondences.txt");
+    std::ifstream in("./examples/task1/correspondences.txt");
     assert(in.is_open());
 
     std::string line, word;
     int n_line = 0;
-    while(getline(in, line)){
-
+    while (getline(in, line))
+    {
         std::stringstream stream(line);
-        if(n_line==0){
+        if (n_line == 0)
+        {
             int n_corrs = 0;
-            stream>> n_corrs;
+            stream >> n_corrs;
             corr_all.resize(n_corrs);
 
-            n_line ++;
+            n_line++;
             continue;
         }
-        if(n_line>0){
-
-            stream>>corr_all[n_line-1].p1[0]>>corr_all[n_line-1].p1[1]
-                  >>corr_all[n_line-1].p2[0]>>corr_all[n_line-1].p2[1];
+        if (n_line > 0)
+        {
+            stream >> corr_all[n_line - 1].p1[0] >> corr_all[n_line - 1].p1[1] >> corr_all[n_line - 1].p2[0] >> corr_all[n_line - 1].p2[1];
         }
         n_line++;
     }
 
     /* 计算采用次数 */
-    const float inlier_ratio =0.5;
-    const int n_samples=8;
+    const float inlier_ratio = 0.5;
+    const int n_samples = 8;
     int n_iterations = calc_ransac_iterations(inlier_ratio, n_samples);
 
     // 用于判读匹配对是否为内点
@@ -216,18 +225,20 @@ int main(int argc, char *argv[]){
     std::cout << "RANSAC-F: Running for " << n_iterations
               << " iterations, threshold " << inlier_thresh
               << "..." << std::endl;
-    for(int i=0; i<n_iterations; i++){
-
+    for (int i = 0; i < n_iterations; i++)
+    {
         /* 1.0 随机找到8对不重复的匹配点 */
         std::set<int> indices;
-        while(indices.size()<8){
+        while (indices.size() < 8)
+        {
             indices.insert(util::system::rand_int() % corr_all.size());
         }
 
         math::Matrix<double, 3, 8> pset1, pset2;
         std::set<int>::const_iterator iter = indices.cbegin();
-        for(int j=0; j<8; j++, iter++){
-            sfm::Correspondence2D2D const & match = corr_all[*iter];
+        for (int j = 0; j < 8; j++, iter++)
+        {
+            sfm::Correspondence2D2D const &match = corr_all[*iter];
 
             pset1(0, j) = match.p1[0];
             pset1(1, j) = match.p1[1];
@@ -240,23 +251,25 @@ int main(int argc, char *argv[]){
 
         /*2.0 8点法估计相机基础矩阵*/
         FundamentalMatrix F;
-        calc_fundamental_8_point(pset1, pset2,F);
+        calc_fundamental_8_point(pset1, pset2, F);
 
         /*3.0 统计所有的内点个数*/
         std::vector<int> inlier_indices = find_inliers(corr_all, F, inlier_thresh);
 
-        if(inlier_indices.size()> best_inliers.size()){
+        if (inlier_indices.size() > best_inliers.size())
+        {
 
-//            std::cout << "RANSAC-F: Iteration " << i
-//                      << ", inliers " << inlier_indices.size() << " ("
-//                      << (100.0 * inlier_indices.size() / corr_all.size())
-//                      << "%)" << std::endl;
+            //            std::cout << "RANSAC-F: Iteration " << i
+            //                      << ", inliers " << inlier_indices.size() << " ("
+            //                      << (100.0 * inlier_indices.size() / corr_all.size())
+            //                      << "%)" << std::endl;
             best_inliers.swap(inlier_indices);
         }
     }
 
     sfm::Correspondences2D2D corr_f;
-    for(int i=0; i< best_inliers.size(); i++){
+    for (int i = 0; i < best_inliers.size(); i++)
+    {
         corr_f.push_back(corr_all[best_inliers[i]]);
     }
 
@@ -264,15 +277,16 @@ int main(int argc, char *argv[]){
     FundamentalMatrix F;
     calc_fundamental_least_squares(corr_f, F);
 
-    std::cout<<"inlier number: "<< best_inliers.size()<<std::endl;
-    std::cout<<"F\n: "<< F<<std::endl;
+    std::cout << "inlier number: " << best_inliers.size() << std::endl;
+    std::cout << "F: \n"
+              << F << std::endl;
 
-    std::cout<<"result should be: \n"
-             <<"inliner number: 272\n"
-             <<"F: \n"
-             <<"-0.00961384 -0.0309071 0.703297\n"
-             <<"0.0448265 -0.00158655 -0.0555796\n"
-             <<"-0.703477 0.0648517 -0.0117791\n";
+    std::cout << "result should be: \n"
+              << "inliner number: 272\n"
+              << "F: \n"
+              << "-0.00961384 -0.0309071 0.703297\n"
+              << "0.0448265 -0.00158655 -0.0555796\n"
+              << "-0.703477 0.0648517 -0.0117791\n";
 
     return 0;
 }

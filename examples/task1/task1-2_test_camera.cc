@@ -3,47 +3,53 @@
 //
 #include <iostream>
 #include "math/vector.h"
-class Camera{
+class Camera
+{
 
 public:
-
     // constructor
-    Camera(){
-
+    Camera()
+    {
         // 采用归一化坐标，不考虑图像尺寸
-        c_[0]=c_[1] = 0.0;
+        c_[0] = c_[1] = 0.0;
     }
 
-    // 相机投影过程
-    math::Vec2d projection(math::Vec3d const & p3d){
-
+    // 相机投影过程 p2d = K * [R t] * p3d
+    math::Vec2d projection(math::Vec3d const &p3d)
+    {
         math::Vec2d p;
         /** TODO HERE
          *
          */
+        // 计算外参变换后的 3D 坐标
+        math::Vec3d q;
+        q[0] = R_[0] * p3d[0] + R_[1] * p3d[1] + R_[2] * p3d[2] + t_[0];
+        q[1] = R_[3] * p3d[0] + R_[4] * p3d[1] + R_[5] * p3d[2] + t_[1];
+        q[2] = R_[6] * p3d[0] + R_[7] * p3d[1] + R_[8] * p3d[2] + t_[2];
+        // 透视投影
+        p[0] = f_ * (q[0] / q[2]) + c_[0];
+        p[1] = f_ * (q[1] / q[2]) + c_[1];
         return p;
-
-
     }
 
     // 相机在世界坐标中的位置 -R^T*t
-    math::Vec3d pos_in_world(){
-
+    math::Vec3d pos_in_world()
+    {
         math::Vec3d pos;
-        pos[0] = R_[0]* t_[0] + R_[3]* t_[1] + R_[6]* t_[2];
-        pos[1] = R_[1]* t_[0] + R_[4]* t_[1] + R_[7]* t_[2];
-        pos[2] = R_[2]* t_[0] + R_[5]* t_[1] + R_[8]* t_[2];
+        pos[0] = R_[0] * t_[0] + R_[3] * t_[1] + R_[6] * t_[2];
+        pos[1] = R_[1] * t_[0] + R_[4] * t_[1] + R_[7] * t_[2];
+        pos[2] = R_[2] * t_[0] + R_[5] * t_[1] + R_[8] * t_[2];
         return -pos;
     }
 
     // 相机在世界坐标中的方向
-    math::Vec3d dir_in_world(){
-
-        math::Vec3d  dir (R_[6], R_[7],R_[8]);
+    math::Vec3d dir_in_world()
+    {
+        math::Vec3d dir(R_[6], R_[7], R_[8]);
         return dir;
     }
-public:
 
+public:
     // 焦距f
     double f_;
 
@@ -65,40 +71,49 @@ public:
     double t_[3];
 };
 
-int main(int argc, char* argv[]){
-
+int main(int argc, char *argv[])
+{
 
     Camera cam;
 
-    //焦距
+    // 焦距
     cam.f_ = 0.920227;
 
     // 径向畸变系数
-    cam.dist_[0] = -0.106599; cam.dist_[1] = 0.104385;
+    cam.dist_[0] = -0.106599;
+    cam.dist_[1] = 0.104385;
 
     // 平移向量
-    cam.t_[0] = 0.0814358; cam.t_[1] =  0.937498;   cam.t_[2] = -0.0887441;
+    cam.t_[0] = 0.0814358;
+    cam.t_[1] = 0.937498;
+    cam.t_[2] = -0.0887441;
 
     // 旋转矩阵
-    cam.R_[0] = 0.999796 ; cam.R_[1] = -0.0127375;  cam.R_[2] =  0.0156807;
-    cam.R_[3] = 0.0128557; cam.R_[4] =  0.999894 ;  cam.R_[5] = -0.0073718;
-    cam.R_[6] = -0.0155846; cam.R_[7] = 0.00757181; cam.R_[8] = 0.999854;
+    cam.R_[0] = 0.999796;
+    cam.R_[1] = -0.0127375;
+    cam.R_[2] = 0.0156807;
+    cam.R_[3] = 0.0128557;
+    cam.R_[4] = 0.999894;
+    cam.R_[5] = -0.0073718;
+    cam.R_[6] = -0.0155846;
+    cam.R_[7] = 0.00757181;
+    cam.R_[8] = 0.999854;
 
     // 三维点坐标
-    math::Vec3d p3d ={1.36939, -1.17123, 7.04869};
+    math::Vec3d p3d = {1.36939, -1.17123, 7.04869};
 
     /*计算相机的投影点*/
     math::Vec2d p2d = cam.projection(p3d);
-    std::cout<<"projection coord:\n "<<p2d<<std::endl;
-    std::cout<<"result should be:\n 0.208188 -0.035398\n\n";
+    std::cout << "projection coord:\n " << p2d << std::endl;
+    std::cout << "result should be:\n 0.208188 -0.035398\n\n";
 
     /*计算相机在世界坐标系中的位置*/
     math::Vec3d pos = cam.pos_in_world();
-    std::cout<<"cam position in world is:\n "<< pos<<std::endl;
-    std::cout<<"result should be: \n -0.0948544 -0.935689 0.0943652\n\n";
+    std::cout << "cam position in world is:\n " << pos << std::endl;
+    std::cout << "result should be: \n -0.0948544 -0.935689 0.0943652\n\n";
 
     /*计算相机在世界坐标系中的方向*/
     math::Vec3d dir = cam.dir_in_world();
-    std::cout<<"cam direction in world is:\n "<<dir<<std::endl;
-    std::cout<<"result should be: \n -0.0155846 0.00757181 0.999854\n";
+    std::cout << "cam direction in world is:\n " << dir << std::endl;
+    std::cout << "result should be: \n -0.0155846 0.00757181 0.999854\n";
 }

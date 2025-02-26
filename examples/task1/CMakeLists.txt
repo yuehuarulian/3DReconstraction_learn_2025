@@ -19,16 +19,6 @@ add_executable(task1-2_test_camera ${CAMERA_MODEL}  )
 target_link_libraries(task1-2_test_camera util core features )
 
 
-# test feature matching
-set(FEATURE_MATCHING
-        task1-6_test_matching.cc
-        visualizer.h
-        visualizer.cc)
-
-add_executable(task1-6_test_matching ${FEATURE_MATCHING})
-target_link_libraries(task1-6_test_matching sfm util core features  )
-
-
 # test fundamental 8 point
 set(FUNDAMENTAL_8_POINT_FILE
         task1-3_test_fundamental_8_point.cc)
@@ -48,3 +38,25 @@ set(POSE_FROM_FUNDAMENTAL
         )
 add_executable(task1-5_test_pose_from_fundamental ${POSE_FROM_FUNDAMENTAL} )
 target_link_libraries(task1-5_test_pose_from_fundamental sfm util core features )
+
+
+# test feature matching
+set(FEATURE_MATCHING
+        task1-6_test_matching.cc
+        visualizer.h
+        visualizer.cc)
+
+add_executable(task1-6_test_matching ${FEATURE_MATCHING})
+target_link_libraries(task1-6_test_matching sfm util core features  )
+
+
+
+# test features
+set(FEATURES
+        task1-7_test_features.cc
+        visualizer.h
+        visualizer.cc)
+
+add_executable(task1-7_test_features ${FEATURES})
+target_link_libraries(task1-7_test_features sfm util core features)
+
