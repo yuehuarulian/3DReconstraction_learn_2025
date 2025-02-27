@@ -42,10 +42,9 @@
 #include "math/vector.h"
 #include "math/matrix.h"
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-
-    /* change*/
+    // clang-format off
     math::Vec2f p1;
     p1[0] = 0.289986; p1[1] = -0.0355493;
     math::Vec2f p2;
@@ -60,23 +59,30 @@ int main(int argc, char* argv[])
     P2(0, 0) = 0.920039;    P2(0, 1)=-0.0117214;  P2(0, 2) = 0.0144298;   P2(0, 3)   = 0.0749395;
     P2(1, 0) = 0.0118301;   P2(1, 1)=0.920129  ;  P2(1, 2) = -0.00678373; P2(1, 3) = 0.862711;
     P2(2, 0) = -0.0155846;  P2(2, 1) =0.00757181; P2(2, 2) = 0.999854 ;   P2(2, 3)   = -0.0887441;
+    // clang-format on
 
     /* 构造A矩阵 */
     math::Matrix<double, 4, 4> A;
     /*
      * TODO 对A矩阵进行赋值
      */
-
+    // clang-format off
+    A(0, 0) = p1[0] * P1(2, 0) - P1(0, 0); A(0, 1) = p1[0] * P1(2, 1) - P1(0, 1); A(0, 2) = p1[0] * P1(2, 2) - P1(0, 2); A(0, 3) = p1[0] * P1(2, 3) - P1(0, 3);
+    A(1, 0) = p1[1] * P1(2, 0) - P1(1, 0); A(1, 1) = p1[1] * P1(2, 1) - P1(1, 1); A(1, 2) = p1[1] * P1(2, 2) - P1(1, 2); A(1, 3) = p1[1] * P1(2, 3) - P1(1, 3);
+    A(2, 0) = p2[0] * P2(2, 0) - P2(0, 0); A(2, 1) = p2[0] * P2(2, 1) - P2(0, 1); A(2, 2) = p2[0] * P2(2, 2) - P2(0, 2); A(2, 3) = p2[0] * P2(2, 3) - P2(0, 3);
+    A(3, 0) = p2[1] * P2(2, 0) - P2(1, 0); A(3, 1) = p2[1] * P2(2, 1) - P2(1, 1); A(3, 2) = p2[1] * P2(2, 2) - P2(1, 2); A(3, 3) = p2[1] * P2(2, 3) - P2(1, 3);
+    // clang-format on
 
     math::Matrix<double, 4, 4> V;
-    math::matrix_svd<double, 4, 4> (A, nullptr, nullptr, &V);
+    math::matrix_svd<double, 4, 4>(A, nullptr, nullptr, &V);
     math::Vec3f X;
-    X[0] = V(0, 3)/V(3, 3);
-    X[1] = V(1, 3)/V(3, 3);
-    X[2] = V(2, 3)/V(3, 3);
+    X[0] = V(0, 3) / V(3, 3);
+    X[1] = V(1, 3) / V(3, 3);
+    X[2] = V(2, 3) / V(3, 3);
 
-    std::cout<<" trianglede point is :"<<X[0]<<" "<<X[1]<<" "<<X[2]<<std::endl;
-    std::cout<<" the result should be "<<"2.14598 -0.250569 6.92321\n"<<std::endl;
+    std::cout << " trianglede point is :" << X[0] << " " << X[1] << " " << X[2] << std::endl;
+    std::cout << " the result should be " << "2.14598 -0.250569 6.92321\n"
+              << std::endl;
 
     return 0;
 }

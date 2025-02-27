@@ -1,3 +1,26 @@
+## 编译
+1.安装依赖库包含`libpng, libjpeg, libtiff, eigen` 等
+
+### Windows
+1. 采用 vcpkg 安装库，注意依赖库编译版本，如果是 mingw64 请安装 x64-mingw-static 版本，如果是 MSCV 请使用 x64-windows 版本
+2. 在 settings.json 里加上 vcpkg 的配置，例如：
+```json
+"vcpkg.general.vcpkgPath": "D:\\ProgrammingSoftware\\vcpkg",
+"cmake.configureSettings": {
+    "CMAKE_TOOLCHAIN_FILE": "D:/ProgrammingSoftware/vcpkg/scripts/buildsystems/vcpkg.cmake",
+    "VCPKG_TARGET_TRIPLET": "x64-mingw-static"
+},
+```
+
+## 内容
+- 全局搜索 TODO 部分为完成内容
+- 原github地址为 https://github.com/ChenJiahao031008/3DReconstruction.git
+- 参考书：Computer Vision: Algorithm and Application
+- 参考视频：https://www.bilibili.com/video/BV1DP41157dB?spm_id_from=333.788.videopod.episodes&vd_source=74af682b9bb2651a40dfd2f99b36e2d7
+
+
+## 下面是原文档
+``` md
 ## ImageBasedModellingEdu V2.1
 ImageBasedModellingEdu V2.1 是用于深蓝学院基于图像的三维模型重建课程配套的代码。该代码来源于著名的开源三维重建开源系统MVE(https://github.com/simonfuhrmann/mve)。
 我们其基础之上对代码的架构进行了调整，使其与课程更为相关，有助于阅读和学习。该工程项目采用CMake管理，可与方便的进行跨平台的编译。代码包含特征提取与匹配、对极几何、运动恢复结构、稠密重建、表面重建以及纹理贴图、可视化等模块，将随着课程的深入不断进行更新。
@@ -67,7 +90,4 @@ make -j8 //-j+数字表示编译所用的核心数，根据自己电脑的能力
    cd build
    ./examples/task1/task1-6_test_matching  ../examples/data/kxm1.jpg ../examples/data/kxm2.jpg ../examples/data/result/
    ```
-   
-   
-
- 
+```
