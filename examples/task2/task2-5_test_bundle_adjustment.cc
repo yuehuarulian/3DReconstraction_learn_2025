@@ -1,3 +1,10 @@
+/*
+背景：两张图片，已知相机焦距
+方法：1. SIFT特征点匹配
+      2. 通过基础矩阵分解求解大致相机姿态
+      3. 三角化求解三维点
+      4. 捆绑调整相机姿态和三位点
+*/
 #include <cassert>
 #include <features/matching.h>
 #include <sfm/ransac_fundamental.h>
